@@ -8,7 +8,7 @@ only the temperature input terminals and the single run time counter differ.
 
 from __future__ import annotations
 
-from ..data_model import KermiComponent, integer, temperature
+from ..data_model import KermiComponent, gauge, temperature
 from .heating_circuit import HeatingCircuit
 
 __all__ = ["UNIT_ID", "UniversalHours", "UniversalModule", "UniversalSensors"]
@@ -64,12 +64,14 @@ class UniversalHours(KermiComponent):
 
     register_ranges = ((300, 300),)
 
-    circuit_pump = integer(
+    circuit_pump = gauge(
         300,
+        0.1,
         unit="h",
+        signed=False,  # the counters run past 32767
         min_value=0,
-        max_value=65535,
-        default=0,
+        max_value=6553.5,
+        range_documented=False,
         maker_key="Heizkreispumpe Laufzeit",
         maker_category="Betriebsstunden",
         description="Heating circuit pump run time",

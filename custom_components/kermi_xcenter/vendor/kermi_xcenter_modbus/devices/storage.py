@@ -9,7 +9,7 @@ at zero, and the hot water module does the reverse.
 
 from __future__ import annotations
 
-from ..data_model import KermiComponent, boolean, enum, integer, temperature
+from ..data_model import KermiComponent, boolean, enum, gauge, temperature
 from ..enums import ExternalHeatGeneratorMode, ExternalHeatGeneratorStatus
 from .heating_circuit import HeatingCircuit
 
@@ -236,22 +236,28 @@ class StorageHours(KermiComponent):
 
     register_ranges = ((300, 301),)
 
-    circuit_pump = integer(
+    circuit_pump = gauge(
         300,
+        0.1,
         unit="h",
+        signed=False,  # the counters run past 32767
         min_value=0,
-        max_value=65535,
+        max_value=6553.5,
+        range_documented=False,
         maker_key="Heizkreispumpe Laufzeit",
         maker_category="Betriebsstunden",
         description="Heating circuit pump run time",
     )
     """Total heating circuit pump run time."""
 
-    external_heat_generator = integer(
+    external_heat_generator = gauge(
         301,
+        0.1,
         unit="h",
+        signed=False,  # the counters run past 32767
         min_value=0,
-        max_value=65535,
+        max_value=6553.5,
+        range_documented=False,
         maker_key="Ext. WEZ Laufzeit",
         maker_category="Betriebsstunden",
         description="External heat generator run time",

@@ -6,7 +6,7 @@ manufacturer's integration guide.
 
 from __future__ import annotations
 
-from ..data_model import KermiComponent, boolean, enum, gauge, integer, temperature
+from ..data_model import KermiComponent, boolean, enum, gauge, temperature
 from ..enums import HeatPumpStatus
 
 __all__ = [
@@ -213,36 +213,53 @@ class PowerEfficiency(KermiComponent):
 class OperatingHours(KermiComponent):
     """Lifetime run time counters. Manufacturer section "Betriebsstunden".
 
-    Read as unsigned whole hours: the manufacturer's Loxone template maps these
-    1:1, and the guide gives the sibling counters on the storage module a range
-    of 0-65535 h. The values seen on real hardware are high enough to be worth
-    checking against the controller display before relying on them — see
+    Scaled by 1/10 and read unsigned, like every other quantity here. Both
+    manufacturer sources say otherwise — the Loxone template maps these 1:1 and
+    the guide gives the sibling counters a range of 0-65535 h — but the
+    controller's own web interface reports register 152 reading 49898 as
+    4989.8 h, matching to the decimal. The 0-65535 in the guide is the raw
+    register range, not the range of the value. See
     ``docs/register-verification.md``.
     """
 
     register_ranges = ((150, 152),)
 
-    fan = integer(
+    fan = gauge(
         150,
+        0.1,
         unit="h",
+        signed=False,  # the counters run past 32767
+        min_value=0,
+        max_value=6553.5,
+        range_documented=False,
         maker_key="Betriebsstunden - Lüfter",
         maker_category="Betriebsstunden",
         description="Fan run time",
     )
     """Total fan run time."""
 
-    storage_loading_pump = integer(
+    storage_loading_pump = gauge(
         151,
+        0.1,
         unit="h",
+        signed=False,  # the counters run past 32767
+        min_value=0,
+        max_value=6553.5,
+        range_documented=False,
         maker_key="Betriebsstunden - Speicherladepumpe",
         maker_category="Betriebsstunden",
         description="Storage loading pump run time",
     )
     """Total storage loading pump run time."""
 
-    compressor = integer(
+    compressor = gauge(
         152,
+        0.1,
         unit="h",
+        signed=False,  # the counters run past 32767
+        min_value=0,
+        max_value=6553.5,
+        range_documented=False,
         maker_key="Betriebsstunden - Verdichter",
         maker_category="Betriebsstunden",
         description="Compressor run time",
