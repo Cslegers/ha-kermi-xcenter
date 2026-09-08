@@ -1,0 +1,111 @@
+#!/usr/bin/env bash
+#
+# Rebuild custom_components/kermi_xcenter from the two upstream sources.
+#
+# This repository holds no hand-written integration code. Everything under
+# custom_components/kermi_xcenter is generated:
+#
+#   * the integration itself from the core staging repository, with its
+#     imports rewritten to reach the vendored library
+#   * vendor/kermi_xcenter_modbus from the device library repository
+#
+# The library is vendored so this can be installed through HACS before the
+# library is published to PyPI. modbus-connection stays an ordinary
+# requirement: it is on PyPI already, and Home Assistant installs it.
+#
+# Edit the sources, not the copies. CI re-runs this and fails if the result
+# differs from what is committed.
+
+set -euo pipefail
+
+cd "$(dirname "$0")/.."
+ROOT="${PWD}"
+
+LIBRARY_REPO="${LIBRARY_REPO:-../kermi-xcenter-modbus}"
+CORE_REPO="${CORE_REPO:-../kermi-xcenter-core}"
+
+LIBRARY_SRC="${LIBRARY_REPO}/src/kermi_xcenter_modbus"
+CORE_SRC="${CORE_REPO}/homeassistant/components/kermi_xcenter"
+TARGET="${ROOT}/custom_components/kermi_xcenter"
+VENDOR="${TARGET}/vendor"
+
+for path in "${LIBRARY_SRC}" "${CORE_SRC}"; do
+    if [[ ! -d "${path}" ]]; then
+        echo "==> Missing source: ${path}" >&2
+        echo "    Set LIBRARY_REPO / CORE_REPO to where the repositories are." >&2
+        exit 1
+    fi
+done
+
+echo "==> Copying the integration from ${CORE_SRC}"
+find "${TARGET}" -maxdepth 1 -type f -delete
+cp "${CORE_SRC}"/*.py "${CORE_SRC}"/*.json "${TARGET}/"
+# quality_scale.yaml is meaningful only inside core, so it is not copied.
+
+echo "==> Rewriting imports onto the vendored library"
+# The library's own modules import each other relatively, so vendoring is a
+# plain copy. Only the integration's imports of the library need redirecting.
+find "${TARGET}" -maxdepth 1 -name '*.py' -print0 | while IFS= read -r -d '' file; do
+    python3 - "${file}" <<'PY'
+import pathlib
+import re
+import sys
+
+path = pathlib.Path(sys.argv[1])
+source = path.read_text()
+# "from kermi_xcenter_modbus import X" -> "from .vendor.kermi_xcenter_modbus import X"
+rewritten = re.sub(
+    r"^from kermi_xcenter_modbus(\S*) import ",
+    r"from .vendor.kermi_xcenter_modbus\1 import ",
+    source,
+    flags=re.MULTILINE,
+)
+if rewritten != source:
+    path.write_text(rewritten)
+PY
+done
+
+echo "==> Rewriting the manifest for a custom integration"
+python3 - "${TARGET}/manifest.json" "${ROOT}/VERSION" <<'PY'
+import json
+import pathlib
+import sys
+
+manifest_path = pathlib.Path(sys.argv[1])
+version = pathlib.Path(sys.argv[2]).read_text().strip()
+manifest = json.loads(manifest_path.read_text())
+
+repository = "https://github.com/slegerscm-ops/ha-kermi-xcenter"
+# HACS requires a version, and points users at this repository rather than at
+# home-assistant.io, which only documents integrations that ship with core.
+manifest["version"] = version
+manifest["documentation"] = repository
+manifest["issue_tracker"] = f"{repository}/issues"
+# The library is vendored here, and modbus-connection arrives with the modbus
+# dependency, so this needs nothing from PyPI of its own.
+manifest["requirements"] = []
+
+ordered = {key: manifest[key] for key in sorted(manifest)}
+manifest_path.write_text(json.dumps(ordered, indent=2) + "\n")
+PY
+
+echo "==> Vendoring the library from ${LIBRARY_SRC}"
+rm -rf "${VENDOR}"
+mkdir -p "${VENDOR}"
+cat > "${VENDOR}/__init__.py" <<'PY'
+"""Third-party code bundled with this integration.
+
+``kermi_xcenter_modbus`` is a copy of the standalone device library, vendored
+so this integration installs through HACS without the library being on PyPI.
+Do not edit it here — change it in the library repository and re-run
+``scripts/vendor_sync``.
+"""
+PY
+cp -R "${LIBRARY_SRC}" "${VENDOR}/kermi_xcenter_modbus"
+find "${VENDOR}" -name '__pycache__' -type d -prune -exec rm -rf {} +
+
+echo "==> Recording the vendored version"
+git -C "${LIBRARY_REPO}" rev-parse --short HEAD > "${VENDOR}/kermi_xcenter_modbus/VENDORED_FROM" 2>/dev/null \
+    || echo "unknown" > "${VENDOR}/kermi_xcenter_modbus/VENDORED_FROM"
+
+echo "==> Done"
