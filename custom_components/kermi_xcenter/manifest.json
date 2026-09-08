@@ -1,4 +1,6 @@
 {
+  "domain": "kermi_xcenter",
+  "name": "Kermi x-center",
   "codeowners": [
     "@Cslegers"
   ],
@@ -7,7 +9,6 @@
     "modbus"
   ],
   "documentation": "https://github.com/Cslegers/ha-kermi-xcenter",
-  "domain": "kermi_xcenter",
   "integration_type": "device",
   "iot_class": "local_polling",
   "issue_tracker": "https://github.com/Cslegers/ha-kermi-xcenter/issues",
@@ -16,7 +17,6 @@
     "modbus_connection",
     "tmodbus"
   ],
-  "name": "Kermi x-center",
   "quality_scale": "bronze",
   "requirements": [],
   "version": "0.1.0"

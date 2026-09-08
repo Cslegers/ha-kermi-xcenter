@@ -85,7 +85,12 @@ manifest["issue_tracker"] = f"{repository}/issues"
 # dependency, so this needs nothing from PyPI of its own.
 manifest["requirements"] = []
 
-ordered = {key: manifest[key] for key in sorted(manifest)}
+# hassfest requires domain and name first, then the rest alphabetically.
+lead = ("domain", "name")
+ordered = {key: manifest[key] for key in lead if key in manifest}
+ordered.update(
+    {key: manifest[key] for key in sorted(manifest) if key not in lead}
+)
 manifest_path.write_text(json.dumps(ordered, indent=2) + "\n")
 PY
 
