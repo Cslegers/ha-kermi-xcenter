@@ -171,12 +171,3 @@ This project reuses substantial material from other projects. See
 - Register numbers, names, ranges and defaults come from Kermi's
   *Kurzanleitung – Einbindung in externe Systeme* (D00028482/05-2024).
 
-**No code** is taken from the other Kermi projects that exist
-([py-kermi-xcenter](https://github.com/jr42/py-kermi-xcenter), the
-[openHAB binding](https://www.openhab.org/addons/bindings/modbus.kermi/),
-[kermi-ha-bridge](https://github.com/m-zenker/kermi-ha-bridge)); they were read
-while researching the interface, nothing more.
-
-Not affiliated with, endorsed by, or supported by Kermi GmbH. "Kermi" and
-"x-center" are trademarks of their respective owner, used only to identify the
-equipment this software talks to.
