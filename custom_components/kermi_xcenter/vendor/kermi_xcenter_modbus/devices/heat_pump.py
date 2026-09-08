@@ -6,7 +6,7 @@ manufacturer's integration guide.
 
 from __future__ import annotations
 
-from ..data_model import KermiComponent, boolean, enum, gauge, temperature
+from ..data_model import KermiComponent, boolean, enum, gauge, integer, temperature
 from ..enums import HeatPumpStatus
 
 __all__ = [
@@ -314,16 +314,20 @@ class PvModulation(KermiComponent):
     """True while the heat pump is modulating on PV surplus."""
 
     # The guide gives no range for 301-303. The bounds below come from the
-    # register width (an unsigned word at 1/10 scaling tops out at 6553.5) and,
-    # for the setpoints, from the documented 0-85 °C range of the comparable
-    # hot water setpoint. They are marked as not published so a consumer can
-    # tell them from the manufacturer's own limits.
-    power = gauge(
+    # register width and, for the setpoints, from the documented 0-85 °C range
+    # of the comparable hot water setpoint. They are marked as not published so
+    # a consumer can tell them from the manufacturer's own limits.
+    #
+    # Register 301 is whole watts, not tenths: it is the same quantity as the
+    # feed-in register, which is known to be whole watts. The setpoints below
+    # are tenths of a degree, confirmed against hardware. Temperatures scale,
+    # watts do not.
+    power = integer(
         301,
-        0.1,
         unit="W",
+        signed=False,
         min_value=0,
-        max_value=6553.5,
+        max_value=65535,
         default=0,
         writable=True,
         range_documented=False,

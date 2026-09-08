@@ -23,7 +23,7 @@ against real hardware (see ``docs/register-verification.md``):
 
 from __future__ import annotations
 
-from ..data_model import KermiComponent, gauge
+from ..data_model import KermiComponent, integer
 
 __all__ = ["PvFeed", "UNIT_ID"]
 
@@ -34,22 +34,25 @@ UNIT_ID = 2
 class PvFeed(KermiComponent):
     """The single register that accepts photovoltaic surplus power.
 
-    The scaling is **not** documented. It is modelled as tenths of a watt to
-    match the manufacturer's own Loxone template for the equivalent register on
-    the heat pump (unit 40, register 301), but this has not been confirmed
-    against a controller that was actually modulating. Confirm on your own
-    installation before relying on the absolute value: write a known surplus,
-    then read ``PvModulation.power`` on unit 40 back.
+    The value is **whole watts**: writing 3500 offers 3500 W of surplus. That
+    is not documented anywhere; it is what the installation this was developed
+    against feeds the register, with the heat pump modulating correctly against
+    it.
+
+    Note this differs from the temperature registers on the controller, which
+    are tenths of a degree. The rule across the device is that temperatures,
+    coefficients of performance and kilowatt figures are scaled by 1/10, while
+    watt figures are whole numbers.
     """
 
     register_ranges = ((1, 1),)
 
-    surplus_power = gauge(
+    surplus_power = integer(
         1,
-        0.1,
         unit="W",
+        signed=False,
         min_value=0,
-        max_value=6553.5,
+        max_value=65535,
         default=0,
         writable=True,
         range_documented=False,
@@ -60,6 +63,6 @@ class PvFeed(KermiComponent):
     )
     """Photovoltaic surplus currently offered to the heat pump."""
 
-    async def async_set_surplus(self, watts: float) -> None:
+    async def async_set_surplus(self, watts: int) -> None:
         """Offer *watts* of photovoltaic surplus to the heat pump."""
-        await self.write("surplus_power", watts)
+        await self.write("surplus_power", round(watts))

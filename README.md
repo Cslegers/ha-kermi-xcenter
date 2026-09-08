@@ -31,8 +31,9 @@ the device page.
 ## Photovoltaic surplus
 
 If Kermi has enabled the feed-in register for your installation, you get a
-`number.kermi_x_center_photovoltaic_surplus` entity. Write your inverter's
-current surplus to it and the controller modulates the heat pump against it:
+`number.photovoltaic_feed_in_photovoltaic_surplus` entity. Write your inverter's
+current surplus to it and the controller modulates the heat pump against it.
+The entity is in **whole watts**: set it to 3500 to offer 3500 W.
 
 ```yaml
 automation:
@@ -43,9 +44,9 @@ automation:
     actions:
       - action: number.set_value
         target:
-          entity_id: number.kermi_x_center_photovoltaic_surplus
+          entity_id: number.photovoltaic_feed_in_photovoltaic_surplus
         data:
-          value: "{{ states('sensor.inverter_surplus_power') | float(0) | max(0) }}"
+          value: "{{ [states('sensor.inverter_surplus_power') | int(0), 0] | max }}"
 ```
 
 The heat pump's own photovoltaic target temperatures are exposed as `number`
@@ -53,11 +54,8 @@ entities too, so an automation can raise the hot water target while the sun is
 out.
 
 > **The feed-in register is undocumented.** Kermi enables it per installation
-> and tells you the address; it appears in no Kermi document. Its scaling has
-> not been confirmed against a controller that was actively modulating, so
-> check that the value you write matches what the controller displays before
-> relying on it. If it has not been enabled for you, the entity simply does not
-> appear.
+> and tells you the address; it appears in no Kermi document. If it has not
+> been enabled for you, the entity simply does not appear.
 
 ## Before you install
 
