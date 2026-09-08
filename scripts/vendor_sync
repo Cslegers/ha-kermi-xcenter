@@ -75,7 +75,7 @@ manifest_path = pathlib.Path(sys.argv[1])
 version = pathlib.Path(sys.argv[2]).read_text().strip()
 manifest = json.loads(manifest_path.read_text())
 
-repository = "https://github.com/slegerscm-ops/ha-kermi-xcenter"
+repository = "https://github.com/Cslegers/ha-kermi-xcenter"
 # HACS requires a version, and points users at this repository rather than at
 # home-assistant.io, which only documents integrations that ship with core.
 manifest["version"] = version

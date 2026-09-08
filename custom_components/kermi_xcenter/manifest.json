@@ -1,16 +1,16 @@
 {
   "codeowners": [
-    "@slegerscm-ops"
+    "@Cslegers"
   ],
   "config_flow": true,
   "dependencies": [
     "modbus"
   ],
-  "documentation": "https://github.com/slegerscm-ops/ha-kermi-xcenter",
+  "documentation": "https://github.com/Cslegers/ha-kermi-xcenter",
   "domain": "kermi_xcenter",
   "integration_type": "device",
   "iot_class": "local_polling",
-  "issue_tracker": "https://github.com/slegerscm-ops/ha-kermi-xcenter/issues",
+  "issue_tracker": "https://github.com/Cslegers/ha-kermi-xcenter/issues",
   "loggers": [
     "kermi_xcenter_modbus",
     "modbus_connection",

@@ -29,14 +29,14 @@ jobs:
       - name: Check out the device library
         uses: actions/checkout@v6
         with:
-          repository: slegerscm-ops/kermi-xcenter-modbus
+          repository: Cslegers/kermi-xcenter-modbus
           path: .sources/kermi-xcenter-modbus
           persist-credentials: false
 
       - name: Check out the core integration
         uses: actions/checkout@v6
         with:
-          repository: slegerscm-ops/kermi-xcenter-core
+          repository: Cslegers/kermi-xcenter-core
           path: .sources/kermi-xcenter-core
           persist-credentials: false
 
