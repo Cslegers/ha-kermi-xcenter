@@ -1,5 +1,12 @@
 # Kermi x-center for Home Assistant
 
+> ### This is not an official Kermi integration
+>
+> An independent, community-built project. It is **not affiliated with, endorsed
+> by, or supported by Kermi GmbH**, and Kermi provides no support for it. Do not
+> raise problems with it to Kermi — [open an issue here](https://github.com/Cslegers/ha-kermi-xcenter/issues)
+> instead. It writes to a heat pump; use it at your own risk.
+
 A Home Assistant integration for Kermi x-center heat pump controllers, over
 local Modbus TCP. No cloud, no account, no polling of anything but your own
 controller.
@@ -53,16 +60,28 @@ The heat pump's own photovoltaic target temperatures are exposed as `number`
 entities too, so an automation can raise the hot water target while the sun is
 out.
 
-> **The feed-in register is undocumented.** Kermi enables it per installation
-> and tells you the address; it appears in no Kermi document. If it has not
-> been enabled for you, the entity simply does not appear.
+> **The feed-in register is undocumented.** It appears in no Kermi document.
+> Kermi enables the excess-solar function per installation and tells you the
+> address it lives on — see [Before you install](#before-you-install). If it has
+> not been enabled for you, the entity simply does not appear.
 
 ## Before you install
 
-**Modbus is off until Kermi turns it on.** Kermi's own integration guide states
-that release and configuration of the interface is done by the manufacturer, so
-contact Kermi support first. You also need interface module firmware v1.6.1.66
-or later.
+**Kermi has to switch two things on for you, and they are separate requests.**
+
+1. **The Modbus interface itself.** Kermi's own integration guide states that
+   release and configuration of the interface is done by the manufacturer.
+   Without this, nothing here responds at all.
+2. **The excess-solar / PV modulation function.** Enabling Modbus does *not*
+   enable this. It is a separate feature, released per installation, and it is
+   what makes the photovoltaic feed-in address exist. Ask for it explicitly if
+   you want to send solar surplus to the heat pump.
+
+Everything except the photovoltaic surplus entity works with only the first.
+If you have Modbus but not the second, the integration still sets up — the
+feed-in device simply does not appear.
+
+You also need interface module firmware v1.6.1.66 or later.
 
 Give the interface module a static IP address, or at least a DHCP reservation —
 its address can otherwise move after a power cut and the integration will stop
@@ -123,12 +142,41 @@ scripts/develop   # run Home Assistant with this integration loaded
 scripts/lint      # ruff
 ```
 
+## Icon
+
+HACS shows no icon for this integration yet. Icons are not set from this
+repository — they come from [home-assistant/brands](https://github.com/home-assistant/brands),
+which needs a pull request adding `custom_integrations/kermi_xcenter/icon.png`
+(256×256, transparent background) and optionally `logo.png`. Until then HACS
+falls back to a placeholder; `.github/workflows/validate.yml` passes
+`ignore: brands` so validation still succeeds.
+
 ## Credits and licence
 
-Register numbers, names, ranges and defaults come from Kermi's
-*Kurzanleitung – Einbindung in externe Systeme* (D00028482/05-2024). Built on
-[`modbus-connection`](https://github.com/home-assistant-libs/modbus-connection).
-Repository scaffolding from
-[ludeeus/integration_blueprint](https://github.com/ludeeus/integration_blueprint).
+Apache License 2.0 — see [LICENSE](LICENSE).
 
-Not affiliated with, endorsed by, or supported by Kermi GmbH.
+This project reuses substantial material from other projects. See
+[NOTICE.md](NOTICE.md) for the full list and their licence terms. In summary:
+
+- Repository scaffolding — CI workflows, dev container, lint config, helper
+  scripts, issue templates — is copied from
+  [ludeeus/integration_blueprint](https://github.com/ludeeus/integration_blueprint)
+  (MIT, © Joakim Sørensen), mostly verbatim.
+- The integration's structure follows the `trovis557x` integration on the
+  [trovis557x-integration](https://github.com/home-assistant/core/tree/trovis557x-integration/homeassistant/components/trovis557x)
+  branch of home-assistant/core (Apache-2.0).
+- The device library is
+  [Cslegers/kermi-xcenter-modbus](https://github.com/Cslegers/kermi-xcenter-modbus),
+  built on [`modbus-connection`](https://github.com/home-assistant-libs/modbus-connection).
+- Register numbers, names, ranges and defaults come from Kermi's
+  *Kurzanleitung – Einbindung in externe Systeme* (D00028482/05-2024).
+
+**No code** is taken from the other Kermi projects that exist
+([py-kermi-xcenter](https://github.com/jr42/py-kermi-xcenter), the
+[openHAB binding](https://www.openhab.org/addons/bindings/modbus.kermi/),
+[kermi-ha-bridge](https://github.com/m-zenker/kermi-ha-bridge)); they were read
+while researching the interface, nothing more.
+
+Not affiliated with, endorsed by, or supported by Kermi GmbH. "Kermi" and
+"x-center" are trademarks of their respective owner, used only to identify the
+equipment this software talks to.
