@@ -16,7 +16,6 @@ from homeassistant.util import dt as dt_util
 from .coordinator import KermiConfigEntry, KermiCoordinator
 from .entity import KermiEntity
 
-
 #: How far apart the feed-in value and register 301 must be to count, in watts.
 PV_FEED_MISMATCH_THRESHOLD = 100
 #: How long both values must sit unchanged and apart before reporting a problem.
