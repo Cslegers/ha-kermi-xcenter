@@ -65,6 +65,37 @@ out.
 > address it lives on — see [Before you install](#before-you-install). If it has
 > not been enabled for you, the entity simply does not appear.
 
+The heat pump can take **10 to 20 minutes** to enter or leave PV mode, so a
+change in surplus does not show up straight away. The delay is set in the Kermi
+portal under "Verdichter modulation (PV)".
+
+### Diagnosing photovoltaic modulation
+
+Register 301 on the heat pump (`pv_modulation.power`, shown as the
+*Photovoltaic modulation power* sensor) can mirror the feed-in value. On one
+installation it mirrored the value in whole watts, then stopped following it
+for reasons not yet understood. These entities make that testable and visible.
+They do not fix it.
+
+- **Photovoltaic modulation power target** is a `number` entity that writes
+  register 301 directly. It is disabled by default and is meant for manual
+  testing; nothing writes to it automatically, and the surplus entity above
+  still writes only to the feed-in register. Reports of its scaling vary: one
+  installation mirrors whole watts, while evcc users report writing W x 10. The
+  entity sends the number you enter unchanged, so check what your own
+  installation expects first. Whether the feed-in register replaces register
+  301 is not established.
+- **Photovoltaic feed-in mismatch** is a diagnostic `binary_sensor` that turns
+  on when the feed-in value and register 301 have differed by more than 100 W
+  for over 30 minutes without either value changing. It is created only when
+  both the heat pump and the feed-in module are present. Any change to either
+  value restarts the 30 minutes, so a surplus that keeps moving will not trigger
+  it, and the timer also restarts with Home Assistant. It compares the two as
+  whole watts, so it also turns on where register 301 uses another scaling.
+- **Partial poll failures** are now logged. A sub-system that stops answering
+  logs one warning, and one info message when it recovers, rather than a line
+  on every poll.
+
 ## Before you install
 
 **Kermi has to switch two things on for you, and they are separate requests.**
